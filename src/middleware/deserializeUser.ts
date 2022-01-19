@@ -4,16 +4,16 @@
 
 import { Request, Response, NextFunction } from "express";
 import { verifyJwt } from "../utils";
+import { get } from "lodash";
 
 const deserializeUser = async (
   req: Request,
   res: Response,
   next: NextFunction
 ) => {
-  const accessToken = (req.headers.authorization || "").replace(
-    /^Bearer\s/,
-    ""
-  );
+  const accessToken =
+    get(req.cookies, "accessToken") ||
+    (req.headers.authorization || "").replace(/^Bearer\s/, "");
 
   if (!accessToken) {
     return next();

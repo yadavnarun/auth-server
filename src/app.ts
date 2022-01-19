@@ -2,6 +2,7 @@ require("dotenv").config();
 import express from "express";
 import config from "config";
 import cors from "cors";
+import cookieParser from "cookie-parser";
 import { connectToDb, log } from "./utils";
 import { deserializeUser } from "./middleware";
 import router from "./routes";
@@ -14,6 +15,7 @@ app.use(
     credentials: true,
   })
 );
+app.use(cookieParser());
 app.use(express.json());
 app.use(deserializeUser);
 app.use(router);

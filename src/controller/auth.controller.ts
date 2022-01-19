@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
 import { get } from "lodash";
+import config from "config";
 import { CreateSessionInput } from "../schema/auth.schema";
 import {
   findSessionById,
@@ -40,14 +41,29 @@ export async function createSessionHandler(
 
   // send the tokens
 
-  return res.send({
-    accessToken,
-    refreshToken,
+  res.cookie("accessToken", accessToken, {
+    maxAge: 900000, // 15m
+    httpOnly: true,
+    domain: config.get<string>("domain"),
+    path: "/",
+    sameSite: "strict",
+    secure: false,
   });
+
+  res.cookie("refreshToken", refreshToken, {
+    maxAge: 3.154e10, // 1y
+    httpOnly: true,
+    domain: config.get<string>("domain"),
+    path: "/",
+    sameSite: "strict",
+    secure: false,
+  });
+
+  return res.sendStatus(200);
 }
 
 export async function refreshAccessTokenHandler(req: Request, res: Response) {
-  const refreshToken = get(req, "headers.x-refresh");
+  const refreshToken = get(req.cookies, "refreshToken");
 
   const decoded = verifyJwt<{ session: string }>(
     refreshToken,
@@ -72,5 +88,14 @@ export async function refreshAccessTokenHandler(req: Request, res: Response) {
 
   const accessToken = signAccessToken(user);
 
-  return res.send({ accessToken });
+  res.cookie("accessToken", accessToken, {
+    maxAge: 900000, // 15m
+    httpOnly: true,
+    domain: config.get<string>("domain"),
+    path: "/",
+    sameSite: "strict",
+    secure: false,
+  });
+
+  return res.sendStatus(200);
 }
